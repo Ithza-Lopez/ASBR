@@ -1,4 +1,8 @@
-function [Rot_matrix] = quart2rot(q0, q1, q2, q3)
+function [Rot_matrix] = Quat2RotMat(q0, q1, q2, q3)
+
+quat = [q0, q1, q2, q3];
+correct = quat2rotm(quat);
+disp(correct)
 
 r11 = q0^2 + q1^2 - q2^2 - q3^2;
 r12 = 2*q1*q2 + 2*q0*q3;
