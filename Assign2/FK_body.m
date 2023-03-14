@@ -11,12 +11,12 @@ for joint_num = 1:length(omega)
     theta_i = theta(joint_num, :); %(1,2,3) grab a row of 3
     skew_omega_i = [0 -omega_i(3) omega_i(2) ; omega_i(3) 0 -omega_i(1) ; -omega_i(2) omega_i(1) 0 ];
     
-    e_OT = eye(3) + skew_omega_i * sind(theta_i) + (skew_omega_i)^2 * (1-cosd(theta_i));
+    e_OT = eye(3) + skew_omega_i * sin(theta_i) + (skew_omega_i)^2 * (1-cos(theta_i));
 
     if all(omega_i == 0) && norm(vel_i) ==1
         e_ST_i = [eye(3), vel_i'*theta_i;0,0,0,1];
-    else %if norm(omega_i) ==1
-        p = (eye(3).*theta_i + (1-cosd(theta_i))*skew_omega_i + (theta_i - sin(theta_i))*(skew_omega_i)^2)* vel_i';
+    elseif norm(omega_i) ==1
+        p = (eye(3).*theta_i + (1-cos(theta_i))*skew_omega_i + (theta_i - sin(theta_i))*(skew_omega_i)^2)* vel_i';
         e_ST_i = [e_OT, p ;0,0,0,1];
     end 
     e_ST = [e_ST, e_ST_i];
