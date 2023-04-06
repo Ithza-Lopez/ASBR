@@ -1,0 +1,66 @@
+% Define the desired end effector position and orientation
+xd = [0 0 5]; % position
+Rd = [1 -0.0 0; 0 1 0; 0 0 1]; % orientation
+
+% Define gains
+Kp = 1.0; % proportional gain
+Ko = 1.0; % orientation gain
+
+% Initialize robot joint angles and simulation time
+q = zeros(8, 1); % joint angles
+t = 0; % simulation time
+dt = 0.01;
+
+pos_tol = 0.1;
+ang_tol = 0.1;
+convergence = false;
+% Run the control loop for 10 seconds
+while t < 100 && ~convergence
+    % Get current end effector position and orientation
+    xR = FK_body(M,omega_m, vel_m ,q);
+    x = xR(1:3,4);
+    R = xR(1:3, 1:3);
+    % Compute error in position and orientation
+    e = (xd' - x)/100;
+    E = vee(Rd*R' - R'*Rd); % orientation error
+%     E = (Rd*R' - R'*Rd)
+%      e_m = [E, e;
+%             zeros(1,3), 1]
+%      thetas = rotm2eul(e_m);
+    % Compute the Jacobian transpose
+    Jt = J_body(M,omega_m, vel_m ,q);
+    
+    % Compute the joint velocities
+%     dq = Jt'* e_m
+    dq = Jt' * [Kp*e; Ko*E];
+%     dq = pinv(Jt) * [Kp*e; Ko*E];
+    
+    % Update the joint angles using forward Euler integration
+    q = q + dq * dt;
+    
+    % Check convergence
+    pos_err = norm(e);
+    orient_err = norm(E);
+%     if pos_err < pos_tol && orient_err < ang_tol
+%         converged = true;
+%         disp('Converged!')
+%         break
+%     end
+    V_dot = [Kp*e; Ko*E]'*Jt*dq;
+    V = 0.5*e'*Kp*e;
+    if V_dot < 0 && V > 0
+        converged = true;
+        disp('Converged!')
+        break
+    end
+    % Increment the simulation time
+    t = t + dt;
+end
+
+
+% Check if converged
+if convergence
+    disp('Control loop converged successfully!')
+else
+    disp('Control loop did not converge')
+end
